@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>myVault — Secure Storage</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#090d14; --surface:#111827; --surface2:#1a2234;
+    --border:#1f2d45; --accent:#3b82f6; --accent2:#6366f1;
+    --danger:#ef4444; --success:#10b981; --text:#e2e8f0; --muted:#64748b;
+    --mono:'JetBrains Mono',monospace; --sans:'Inter',sans-serif;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+  /* LOGIN */
+  #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;background:var(--bg);padding:1rem}
+  .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;position:relative;overflow:hidden}
+  .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+  .login-logo{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+  .login-logo .icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .login-logo .brand{font-family:var(--mono);font-size:1.4rem;font-weight:500}
+  .login-logo .brand span{color:var(--accent)}
+  .login-subtitle{font-size:.8rem;color:var(--muted);font-family:var(--mono);margin-bottom:2rem;letter-spacing:1px;text-transform:uppercase}
+  .field{margin-bottom:1.2rem}
+  .field label{display:block;font-size:.75rem;font-family:var(--mono);color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem}
+  .field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-family:var(--mono);font-size:.9rem;outline:none;transition:border-color .2s}
+  .field input:focus{border-color:var(--accent)}
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:.8rem;font-family:var(--mono);font-size:.9rem;font-weight:500;cursor:pointer;margin-top:.5rem;transition:opacity .2s,transform .1s}
+  .btn-primary:hover{opacity:.9}
+  .btn-primary:active{transform:scale(.98)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+  .login-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);border-radius:8px;padding:.75rem 1rem;font-size:.82rem;font-family:var(--mono);margin-top:1rem;display:none}
+
+  /* APP */
+  #app{display:none;position:relative;z-index:1;min-height:100vh}
+
+  /* TOPBAR */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(9,13,20,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;gap:1rem}
+  .topbar-brand{font-family:var(--mono);font-weight:500;font-size:1rem}
+  .topbar-brand span{color:var(--accent)}
+  .topbar-right{display:flex;align-items:center;gap:.75rem}
+  .search-wrap{position:relative;flex:1;max-width:320px}
+  .search-wrap input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.5rem 1rem .5rem 2.4rem;color:var(--text);font-family:var(--sans);font-size:.85rem;outline:none;transition:border-color .2s}
+  .search-wrap input:focus{border-color:var(--accent)}
+  .search-wrap .s-icon{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
+  .btn-icon{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:border-color .2s,background .2s}
+  .btn-icon:hover{border-color:var(--accent);background:var(--surface2)}
+
+  /* LAYOUT */
+  .layout{display:flex;min-height:calc(100vh - 57px)}
+
+  /* SIDEBAR */
+  .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:1.2rem .75rem;display:flex;flex-direction:column;gap:.3rem}
+  .sidebar-label{font-size:.65rem;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:.5rem .75rem .3rem}
+  .folder-item{display:flex;align-items:center;gap:.6rem;padding:.5rem .75rem;border-radius:7px;cursor:pointer;font-size:.85rem;color:var(--muted);transition:background .15s,color .15s;user-select:none}
+  .folder-item:hover{background:var(--surface2);color:var(--text)}
+  .folder-item.active{background:rgba(59,130,246,.12);color:var(--accent)}
+  .folder-item .count{margin-left:auto;font-family:var(--mono);font-size:.7rem;background:var(--surface2);padding:1px 6px;border-radius:10px}
+  .folder-item.active .count{background:rgba(59,130,246,.2)}
+  .folder-add{display:flex;align-items:center;gap:.5rem;padding:.45rem .75rem;border-radius:7px;cursor:pointer;font-size:.8rem;color:var(--muted);border:1px dashed var(--border);margin-top:.3rem;transition:border-color .2s,color .2s}
+  .folder-add:hover{border-color:var(--accent);color:var(--accent)}
+  .sidebar-footer{margin-top:auto;padding:.75rem;border-top:1px solid var(--border);font-size:.75rem;color:var(--muted);font-family:var(--mono);display:flex;flex-direction:column;gap:4px}
+
+  /* MAIN */
+  .main{flex:1;padding:1.5rem;overflow-y:auto}
+  .main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
+  .main-title{font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
+  .main-actions{display:flex;gap:.5rem}
+  .btn-sm{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.45rem .85rem;font-size:.8rem;font-family:var(--sans);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:border-color .2s,background .2s}
+  .btn-sm:hover{border-color:var(--accent);background:var(--surface2)}
+  .btn-sm.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn-sm.primary:hover{background:#2563eb;border-color:#2563eb}
+  .view-toggle{display:flex;gap:2px}
+  .view-toggle .btn-icon{width:30px;height:30px;font-size:.8rem}
+  .view-toggle .btn-icon.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* UPLOAD ZONE */
+  .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:1.5rem;background:var(--surface)}
+  .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(59,130,246,.04)}
+  .upload-zone .uz-icon{font-size:2rem;margin-bottom:.5rem}
+  .upload-zone p{font-size:.85rem;color:var(--muted);margin-top:.3rem}
+  .upload-zone strong{color:var(--text)}
+
+  /* GRID */
+  .files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem}
+  .file-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;cursor:pointer;transition:border-color .2s,transform .15s;position:relative}
+  .file-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .file-card.selected{border-color:var(--accent);background:rgba(59,130,246,.06)}
+  .file-thumb{height:110px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .file-thumb img{width:100%;height:100%;object-fit:cover}
+  .file-thumb .file-icon{font-size:2.5rem}
+  .file-meta{padding:.6rem .7rem;border-top:1px solid var(--border)}
+  .file-name{font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+  .file-size{font-size:.68rem;color:var(--muted);font-family:var(--mono)}
+  .file-card .card-actions{position:absolute;top:6px;right:6px;display:flex;gap:4px;opacity:0;transition:opacity .2s}
+  .file-card:hover .card-actions{opacity:1}
+  .card-action-btn{width:26px;height:26px;border-radius:6px;border:none;background:rgba(9,13,20,.85);color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:.75rem;transition:background .15s;backdrop-filter:blur(4px)}
+  .card-action-btn:hover{background:var(--accent)}
+  .card-action-btn.del:hover{background:var(--danger)}
+
+  /* LIST */
+  .files-list{display:flex;flex-direction:column;gap:.4rem}
+  .file-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:.65rem 1rem;display:flex;align-items:center;gap:.75rem;cursor:pointer;transition:border-color .2s}
+  .file-row:hover{border-color:var(--accent)}
+  .file-row.selected{border-color:var(--accent);background:rgba(59,130,246,.06)}
+  .file-row .row-icon{font-size:1.2rem;flex-shrink:0}
+  .file-row .row-name{flex:1;font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .file-row .row-folder{font-size:.72rem;color:var(--muted);font-family:var(--mono);background:var(--surface2);padding:1px 7px;border-radius:10px;flex-shrink:0}
+  .file-row .row-size{font-size:.72rem;color:var(--muted);font-family:var(--mono);width:60px;text-align:right;flex-shrink:0}
+  .file-row .row-actions{display:flex;gap:4px;opacity:0;transition:opacity .2s}
+  .file-row:hover .row-actions{opacity:1}
+
+  /* EMPTY */
+  .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
+  .empty-state .es-icon{font-size:3rem;margin-bottom:.75rem}
+  .empty-state p{font-size:.9rem}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:440px;position:relative}
+  .modal h3{font-size:1rem;margin-bottom:1rem}
+  .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer}
+  .modal-close:hover{color:var(--text)}
+  .modal .field input,.modal .field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;color:var(--text);font-family:var(--sans);font-size:.87rem;outline:none}
+  .modal .field select option{background:var(--surface)}
+  .modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem}
+  .share-link-box{display:flex;gap:.5rem;margin-top:.75rem}
+  .share-link-box input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:.55rem .8rem;color:var(--muted);font-family:var(--mono);font-size:.78rem;outline:none}
+
+  /* PROGRESS */
+  .upload-progress{margin-bottom:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;display:none}
+  .progress-bar-wrap{background:var(--bg);border-radius:4px;height:4px;margin-top:.5rem;overflow:hidden}
+  .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .2s}
+  .progress-label{display:flex;justify-content:space-between;font-size:.75rem;font-family:var(--mono);color:var(--muted);margin-bottom:.4rem}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.85rem;display:flex;align-items:center;gap:.5rem;z-index:1000;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:var(--success)}
+  .toast.error{border-color:var(--danger)}
+
+  @media(max-width:680px){.sidebar{display:none}.search-wrap{max-width:160px}.files-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icon">🔐</div>
+      <div class="brand">my<span>Vault</span></div>
+    </div>
+    <div class="login-subtitle">Secure personal storage</div>
+    <div class="field">
+      <label>Email</label>
+      <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input id="pass-input" type="password" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Unlock Vault</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <nav class="topbar">
+    <div class="topbar-brand">my<span>Vault</span></div>
+    <div class="search-wrap">
+      <span class="s-icon">🔍</span>
+      <input type="text" placeholder="Search files…" id="search-input" oninput="renderFiles()"/>
+    </div>
+    <div class="topbar-right">
+      <div class="view-toggle">
+        <button class="btn-icon active" id="grid-btn" title="Grid" onclick="setView('grid')">▦</button>
+        <button class="btn-icon" id="list-btn" title="List" onclick="setView('list')">≡</button>
+      </div>
+      <button class="btn-icon" title="Sign out" onclick="doLogout()">⏻</button>
+    </div>
+  </nav>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-label">Folders</div>
+      <div class="folder-item active" data-folder="all" onclick="selectFolder('all')">
+        <span>📁</span> All Files <span class="count" id="count-all">0</span>
+      </div>
+      <div id="folder-list"></div>
+      <div class="folder-add" onclick="openModal('folder-modal')">＋ New folder</div>
+      <div class="sidebar-footer">
+        <span id="storage-used">0 files</span>
+        <span style="color:var(--success);font-size:.7rem">● Cloudinary + Firebase</span>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="main-header">
+        <div class="main-title" id="folder-title">📁 All Files</div>
+        <div class="main-actions">
+          <button class="btn-sm" id="delete-selected-btn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteSelected()">🗑 Delete Selected</button>
+          <button class="btn-sm primary" onclick="document.getElementById('file-input').click()">＋ Upload</button>
+        </div>
+      </div>
+      <div class="upload-zone" id="upload-zone"
+        ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+        onclick="document.getElementById('file-input').click()">
+        <div class="uz-icon">📤</div>
+        <strong>Drop files here or click to upload</strong>
+        <p>Screenshots, PDFs, images, documents — all types accepted</p>
+      </div>
+      <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files)"/>
+      <div class="upload-progress" id="upload-progress">
+        <div class="progress-label">
+          <span id="progress-name">Uploading…</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar" style="width:0%"></div></div>
+      </div>
+      <div id="files-container"></div>
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="folder-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('folder-modal')">✕</button>
+    <h3>Create New Folder</h3>
+    <div class="field"><label>Folder Name</label><input type="text" id="new-folder-name" placeholder="e.g. Medical Records"/></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('folder-modal')">Cancel</button>
+      <button class="btn-sm primary" onclick="createFolder()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="move-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('move-modal')">✕</button>
+    <h3>Move to Folder</h3>
+    <div class="field"><label>Select Folder</label><select id="move-folder-select"></select></div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('move-modal')">Cancel</button>
+      <button class="btn-sm primary" onclick="confirmMove()">Move</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="share-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('share-modal')">✕</button>
+    <h3>Share File</h3>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">Anyone with this link can view this file.</p>
+    <div class="share-link-box">
+      <input type="text" id="share-link-input" readonly/>
+      <button class="btn-sm primary" onclick="copyShareLink()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="preview-modal">
+  <div class="modal" style="text-align:center;max-width:90vw">
+    <button class="modal-close" onclick="closeModal('preview-modal')">✕</button>
+    <h3 id="preview-name" style="margin-bottom:1rem"></h3>
+    <div id="preview-content"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDocs, deleteDoc, collection }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ════════════════════════════════
+// 🔧 PASTE YOUR FIREBASE CONFIG HERE
+// ════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyBNRD71tX9HKC9j7uhwKd-coysLk1STIys",
+  authDomain: "myvault-e364a.firebaseapp.com",
+  projectId: "myvault-e364a",
+  storageBucket: "myvault-e364a.firebasestorage.app",
+  messagingSenderId: "984257978494",
+  appId: "1:984257978494:web:7dad8100558d5209bd382f"
+};
+// ════════════════════════════════
+
+// ════════════════════════════════
+// 🔧 CLOUDINARY CONFIG (already filled)
+// ════════════════════════════════
+const CLOUD_NAME    = "dqvwgee2d";
+const UPLOAD_PRESET = "Myvault";
+// ════════════════════════════════
+
+const fbApp = initializeApp(firebaseConfig);
+const auth  = getAuth(fbApp);
+const db    = getFirestore(fbApp);
+
+let currentFolder = 'all';
+let viewMode      = 'grid';
+let allFiles      = [];
+let folders       = ['General'];
+let selectedFiles = new Set();
+let moveTargetId  = null;
+
+// ── AUTH ──
+window.doLogin = async () => {
+  const email = document.getElementById('email-input').value.trim();
+  const pass  = document.getElementById('pass-input').value;
+  const btn   = document.getElementById('login-btn');
+  const err   = document.getElementById('login-error');
+  err.style.display = 'none';
+  btn.disabled = true; btn.textContent = 'Unlocking…';
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+  } catch(e) {
+    err.textContent = 'Access denied. Check your email and password.';
+    err.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Unlock Vault';
+  }
+};
+
+window.doLogout = async () => { await signOut(auth); };
+
+onAuthStateChanged(auth, user => {
+  document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
+  document.getElementById('app').style.display          = user ? 'block' : 'none';
+  if(user) initApp();
+});
+
+async function initApp() {
+  await loadFolders();
+  await loadFiles();
+}
+
+// ── FOLDERS ──
+async function loadFolders() {
+  const snap = await getDocs(collecti
