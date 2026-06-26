@@ -6,12 +6,10 @@
 <title>myVault — Secure Storage</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
 <style>
-  :root{--bg:#090d14;--surface:#111827;--surface2:#1a2234;--border:#1f2d45;--accent:#3b82f6;--accent2:#6366f1;--danger:#ef4444;--success:#10b981;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif}
+  :root{--bg:#090d14;--surface:#111827;--surface2:#1a2234;--border:#1f2d45;--accent:#3b82f6;--accent2:#6366f1;--danger:#ef4444;--success:#10b981;--warn:#f59e0b;--text:#e2e8f0;--muted:#64748b;--mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
   body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(59,130,246,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
-
-  /* LOGIN */
   #login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:100;background:var(--bg);padding:1rem}
   .login-card{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem 2rem;position:relative;overflow:hidden}
   .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
@@ -22,18 +20,14 @@
   .login-subtitle{font-size:.8rem;color:var(--muted);font-family:var(--mono);margin-bottom:2rem;letter-spacing:1px;text-transform:uppercase}
   .field{margin-bottom:1.2rem}
   .field label{display:block;font-size:.75rem;font-family:var(--mono);color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem}
-  .field input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-family:var(--mono);font-size:.9rem;outline:none;transition:border-color .2s}
-  .field input:focus{border-color:var(--accent)}
+  .field input,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;color:var(--text);font-family:var(--mono);font-size:.85rem;outline:none;transition:border-color .2s;resize:vertical}
+  .field input:focus,.field textarea:focus{border-color:var(--accent)}
   .btn-primary{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none;border-radius:8px;padding:.8rem;font-family:var(--mono);font-size:.9rem;font-weight:500;cursor:pointer;margin-top:.5rem;transition:opacity .2s,transform .1s}
   .btn-primary:hover{opacity:.9}
   .btn-primary:active{transform:scale(.98)}
   .btn-primary:disabled{opacity:.5;cursor:not-allowed}
   .login-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);border-radius:8px;padding:.75rem 1rem;font-size:.82rem;font-family:var(--mono);margin-top:1rem;display:none}
-
-  /* APP */
   #app{display:none;position:relative;z-index:1;min-height:100vh}
-
-  /* TOPBAR */
   .topbar{position:sticky;top:0;z-index:50;background:rgba(9,13,20,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.5rem;gap:1rem}
   .topbar-brand{font-family:var(--mono);font-weight:500;font-size:1rem}
   .topbar-brand span{color:var(--accent)}
@@ -44,12 +38,8 @@
   .search-wrap .s-icon{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted);font-size:.9rem;pointer-events:none}
   .btn-icon{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:border-color .2s,background .2s}
   .btn-icon:hover{border-color:var(--accent);background:var(--surface2)}
-
-  /* LOGOUT BUTTON — clearly labelled */
   .logout-btn{background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);padding:.4rem .8rem;font-size:.75rem;font-family:var(--mono);cursor:pointer;transition:all .2s;white-space:nowrap}
   .logout-btn:hover{border-color:var(--danger);color:var(--danger)}
-
-  /* LAYOUT */
   .layout{display:flex;min-height:calc(100vh - 57px)}
   .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);padding:1.2rem .75rem;display:flex;flex-direction:column;gap:.3rem}
   .sidebar-label{font-size:.65rem;font-family:var(--mono);letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:.5rem .75rem .3rem}
@@ -64,96 +54,82 @@
   .main{flex:1;padding:1.5rem;overflow-y:auto}
   .main-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem}
   .main-title{font-size:1.1rem;font-weight:600;display:flex;align-items:center;gap:.5rem}
-  .main-actions{display:flex;gap:.5rem}
+  .main-actions{display:flex;gap:.5rem;flex-wrap:wrap}
   .btn-sm{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:.45rem .85rem;font-size:.8rem;font-family:var(--sans);color:var(--text);cursor:pointer;display:flex;align-items:center;gap:.4rem;transition:border-color .2s,background .2s}
   .btn-sm:hover{border-color:var(--accent);background:var(--surface2)}
   .btn-sm.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn-sm.primary:hover{background:#2563eb;border-color:#2563eb}
+  .btn-sm.gdrive{background:rgba(245,158,11,.1);border-color:var(--warn);color:var(--warn)}
   .view-toggle{display:flex;gap:2px}
   .view-toggle .btn-icon{width:30px;height:30px;font-size:.8rem}
   .view-toggle .btn-icon.active{background:var(--accent);border-color:var(--accent);color:#fff}
-
-  /* UPLOAD ZONE */
-  .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:1.5rem;background:var(--surface)}
+  .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:1rem;background:var(--surface)}
   .upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(59,130,246,.04)}
   .upload-zone .uz-icon{font-size:2rem;margin-bottom:.5rem}
   .upload-zone p{font-size:.85rem;color:var(--muted);margin-top:.3rem}
   .upload-zone strong{color:var(--text)}
-
-  /* FILE GRID */
+  /* GDRIVE BANNER */
+  .gdrive-banner{background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.25);border-radius:10px;padding:.75rem 1rem;margin-bottom:1.5rem;font-size:.82rem;color:var(--warn);display:flex;align-items:center;gap:.6rem;cursor:pointer;transition:background .2s}
+  .gdrive-banner:hover{background:rgba(245,158,11,.12)}
   .files-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1rem}
   .file-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s,transform .15s;position:relative}
   .file-card:hover{border-color:var(--accent);transform:translateY(-2px)}
-  .file-card.selected{border-color:var(--accent);background:rgba(59,130,246,.06)}
+  .file-card.gdrive-card{border-color:rgba(245,158,11,.3)}
+  .file-card.gdrive-card:hover{border-color:var(--warn)}
   .file-thumb{height:110px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer}
   .file-thumb img{width:100%;height:100%;object-fit:cover}
   .file-thumb .file-icon{font-size:2.5rem}
   .file-meta{padding:.6rem .7rem;border-top:1px solid var(--border)}
-  .file-name{font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:6px}
+  .file-name{font-size:.78rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
   .file-size{font-size:.68rem;color:var(--muted);font-family:var(--mono);margin-bottom:8px}
-
-  /* FILE ACTION BUTTONS — always visible on mobile */
   .file-btns{display:flex;gap:4px;flex-wrap:wrap}
-  .fbt{flex:1;min-width:0;padding:4px 6px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.68rem;cursor:pointer;text-align:center;transition:background .15s,border-color .15s;white-space:nowrap}
-  .fbt:hover{border-color:var(--accent);background:rgba(59,130,246,.15)}
+  .fbt{flex:1;min-width:0;padding:4px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.65rem;cursor:pointer;text-align:center;transition:background .15s,border-color .15s;white-space:nowrap}
   .fbt.open{border-color:var(--accent);color:var(--accent)}
   .fbt.dl{border-color:var(--success);color:var(--success)}
-  .fbt.sh{border-color:var(--muted)}
   .fbt.del{border-color:var(--danger);color:var(--danger)}
-
-  /* FILE LIST */
+  .fbt.gdrive{border-color:var(--warn);color:var(--warn)}
   .files-list{display:flex;flex-direction:column;gap:.6rem}
   .file-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.75rem 1rem;transition:border-color .2s}
   .file-row:hover{border-color:var(--accent)}
-  .file-row.selected{border-color:var(--accent);background:rgba(59,130,246,.06)}
+  .file-row.gdrive-row{border-color:rgba(245,158,11,.3)}
   .file-row-top{display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem}
-  .file-row .row-icon{font-size:1.3rem;flex-shrink:0}
+  .file-row .row-icon{font-size:1.3rem;flex-shrink:0;cursor:pointer}
   .file-row .row-info{flex:1;min-width:0}
   .file-row .row-name{font-size:.85rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .file-row .row-meta{font-size:.7rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
   .file-row .row-btns{display:flex;gap:6px;flex-wrap:wrap}
   .rbt{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:.75rem;cursor:pointer;transition:background .15s,border-color .15s;white-space:nowrap}
-  .rbt:hover{border-color:var(--accent)}
   .rbt.open{border-color:var(--accent);color:var(--accent)}
   .rbt.dl{border-color:var(--success);color:var(--success)}
   .rbt.del{border-color:var(--danger);color:var(--danger)}
-
-  /* EMPTY */
+  .rbt.gdrive{border-color:var(--warn);color:var(--warn)}
   .empty-state{text-align:center;padding:3rem 1rem;color:var(--muted)}
   .empty-state .es-icon{font-size:3rem;margin-bottom:.75rem}
-
-  /* MODALS */
   .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;display:none;align-items:center;justify-content:center;padding:1rem}
   .modal-overlay.open{display:flex}
-  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:440px;position:relative}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.5rem;width:100%;max-width:460px;position:relative}
   .modal h3{font-size:1rem;margin-bottom:1rem}
   .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer}
   .modal-close:hover{color:var(--text)}
-  .modal .field input,.modal .field select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;color:var(--text);font-family:var(--sans);font-size:.87rem;outline:none}
+  .modal .field input,.modal .field select,.modal .field textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:.65rem .9rem;color:var(--text);font-family:var(--sans);font-size:.85rem;outline:none;resize:vertical}
   .modal .field select option{background:var(--surface)}
   .modal .field label{display:block;font-size:.75rem;font-family:var(--mono);color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:.5rem}
   .modal-footer{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1.2rem}
   .share-link-box{display:flex;gap:.5rem;margin-top:.75rem}
   .share-link-box input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:.55rem .8rem;color:var(--muted);font-family:var(--mono);font-size:.78rem;outline:none}
-
-  /* PREVIEW MODAL */
   #preview-modal .modal{max-width:95vw;max-height:92vh;overflow:auto;text-align:center}
   #preview-modal img{max-width:100%;border-radius:8px;display:block;margin:0 auto}
   #preview-modal iframe{width:100%;height:70vh;border:none;border-radius:8px}
   .preview-actions{display:flex;gap:.5rem;justify-content:center;margin-top:1rem;flex-wrap:wrap}
-
-  /* PROGRESS */
   .upload-progress{margin-bottom:1rem;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:.9rem 1rem;display:none}
   .progress-bar-wrap{background:var(--bg);border-radius:4px;height:4px;margin-top:.5rem;overflow:hidden}
   .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:4px;transition:width .2s}
   .progress-label{display:flex;justify-content:space-between;font-size:.75rem;font-family:var(--mono);color:var(--muted);margin-bottom:.4rem}
-
-  /* TOAST */
   .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:.75rem 1.1rem;font-size:.85rem;z-index:1000;transform:translateY(20px);opacity:0;transition:all .3s;pointer-events:none}
   .toast.show{transform:translateY(0);opacity:1}
   .toast.success{border-color:var(--success)}
   .toast.error{border-color:var(--danger)}
-
+  .gdrive-hint{font-size:.72rem;color:var(--muted);margin-top:.4rem;line-height:1.4}
   @media(max-width:680px){.sidebar{display:none}.search-wrap{max-width:150px}.files-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}}
 </style>
 </head>
@@ -162,19 +138,10 @@
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">
-      <div class="icon">🔐</div>
-      <div class="brand">my<span>Vault</span></div>
-    </div>
+    <div class="login-logo"><div class="icon">🔐</div><div class="brand">my<span>Vault</span></div></div>
     <div class="login-subtitle">Secure personal storage</div>
-    <div class="field">
-      <label>Email</label>
-      <input id="email-input" type="email" placeholder="you@example.com" autocomplete="email"/>
-    </div>
-    <div class="field">
-      <label>Password</label>
-      <input id="pass-input" type="password" placeholder="••••••••" autocomplete="current-password"/>
-    </div>
+    <div class="field"><label>Email</label><input id="email-input" type="email" placeholder="you@example.com" autocomplete="email"/></div>
+    <div class="field"><label>Password</label><input id="pass-input" type="password" placeholder="••••••••" autocomplete="current-password"/></div>
     <button class="btn-primary" id="login-btn">Unlock Vault</button>
     <div class="login-error" id="login-error"></div>
   </div>
@@ -190,8 +157,8 @@
     </div>
     <div class="topbar-right">
       <div class="view-toggle">
-        <button class="btn-icon active" id="grid-btn" title="Grid" onclick="setView('grid')">▦</button>
-        <button class="btn-icon" id="list-btn" title="List" onclick="setView('list')">≡</button>
+        <button class="btn-icon active" id="grid-btn" onclick="setView('grid')">▦</button>
+        <button class="btn-icon" id="list-btn" onclick="setView('list')">≡</button>
       </div>
       <button class="logout-btn" onclick="confirmLogout()">Sign Out</button>
     </div>
@@ -199,9 +166,7 @@
   <div class="layout">
     <aside class="sidebar">
       <div class="sidebar-label">Folders</div>
-      <div class="folder-item active" data-folder="all" onclick="selectFolder('all')">
-        <span>📁</span> All Files <span class="count" id="count-all">0</span>
-      </div>
+      <div class="folder-item active" data-folder="all" onclick="selectFolder('all')"><span>📁</span> All Files <span class="count" id="count-all">0</span></div>
       <div id="folder-list"></div>
       <div class="folder-add" onclick="openModal('folder-modal')">＋ New folder</div>
       <div class="sidebar-footer">
@@ -213,14 +178,15 @@
       <div class="main-header">
         <div class="main-title" id="folder-title">📁 All Files</div>
         <div class="main-actions">
-          <button class="btn-sm" id="delete-selected-btn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteSelected()">🗑 Delete Selected</button>
+          <button class="btn-sm" id="delete-selected-btn" style="display:none;color:var(--danger);border-color:var(--danger)" onclick="deleteSelected()">🗑 Delete</button>
+          <button class="btn-sm gdrive" onclick="openModal('gdrive-modal')">📎 Add Drive Link</button>
           <button class="btn-sm primary" onclick="document.getElementById('file-input').click()">＋ Upload</button>
         </div>
       </div>
       <div class="upload-zone" id="upload-zone" ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" onclick="document.getElementById('file-input').click()">
         <div class="uz-icon">📤</div>
         <strong>Drop files here or click to upload</strong>
-        <p>Screenshots, PDFs, images, documents — all types accepted</p>
+        <p>Screenshots and images — tap "Add Drive Link" for PDFs</p>
       </div>
       <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(this.files)"/>
       <div class="upload-progress" id="upload-progress">
@@ -269,6 +235,32 @@
   </div>
 </div>
 
+<!-- GOOGLE DRIVE MODAL -->
+<div class="modal-overlay" id="gdrive-modal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('gdrive-modal')">✕</button>
+    <h3>📎 Add Google Drive File</h3>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:1rem">Use this for PDFs or any file stored in Google Drive. Make sure the file is set to "Anyone with the link can view" in Drive.</p>
+    <div class="field">
+      <label>File Name</label>
+      <input type="text" id="gdrive-name" placeholder="e.g. My Report.pdf"/>
+    </div>
+    <div class="field">
+      <label>Google Drive Link</label>
+      <input type="text" id="gdrive-url" placeholder="https://drive.google.com/file/d/..."/>
+      <div class="gdrive-hint">In Google Drive: tap the file → Share → Change to "Anyone with the link" → Copy link</div>
+    </div>
+    <div class="field">
+      <label>Folder</label>
+      <select id="gdrive-folder-select"></select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-sm" onclick="closeModal('gdrive-modal')">Cancel</button>
+      <button class="btn-sm primary" onclick="saveGdriveLink()">Save Link</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="preview-modal">
   <div class="modal">
     <button class="modal-close" onclick="closeModal('preview-modal')">✕</button>
@@ -305,31 +297,23 @@ let currentFolder='all', viewMode='grid', allFiles=[], folders=['General'], sele
 
 // AUTH
 document.getElementById('login-btn').addEventListener('click', async () => {
-  const email = document.getElementById('email-input').value.trim();
-  const pass  = document.getElementById('pass-input').value;
-  const btn   = document.getElementById('login-btn');
-  const err   = document.getElementById('login-error');
+  const email=document.getElementById('email-input').value.trim();
+  const pass=document.getElementById('pass-input').value;
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-error');
   err.style.display='none';
   if(!email||!pass){ err.textContent='Enter email and password.'; err.style.display='block'; return; }
   btn.disabled=true; btn.textContent='Unlocking…';
-  try {
-    await signInWithEmailAndPassword(auth, email, pass);
-  } catch(e) {
-    err.textContent='Error: '+e.code;
-    err.style.display='block';
-    btn.disabled=false; btn.textContent='Unlock Vault';
-  }
+  try { await signInWithEmailAndPassword(auth,email,pass); }
+  catch(e){ err.textContent='Error: '+e.code; err.style.display='block'; btn.disabled=false; btn.textContent='Unlock Vault'; }
 });
 
-document.getElementById('pass-input').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-btn').click(); });
+document.getElementById('pass-input').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('login-btn').click(); });
+window.confirmLogout=()=>{ if(confirm('Sign out of myVault?')) signOut(auth); };
 
-window.confirmLogout = () => {
-  if(confirm('Sign out of myVault?')) signOut(auth);
-};
-
-onAuthStateChanged(auth, user => {
-  document.getElementById('login-screen').style.display = user ? 'none' : 'flex';
-  document.getElementById('app').style.display          = user ? 'block' : 'none';
+onAuthStateChanged(auth,user=>{
+  document.getElementById('login-screen').style.display=user?'none':'flex';
+  document.getElementById('app').style.display=user?'block':'none';
   if(user) initApp();
 });
 
@@ -343,7 +327,7 @@ async function loadFolders(){
   renderFolders();
 }
 
-window.createFolder = async () => {
+window.createFolder=async()=>{
   const name=document.getElementById('new-folder-name').value.trim();
   if(!name) return;
   if(!folders.includes(name)){ await setDoc(doc(db,'folders',name),{name}); folders.push(name); renderFolders(); showToast('📁 Folder created','success'); }
@@ -366,18 +350,51 @@ function renderFolders(){
   document.getElementById('count-all').textContent=allFiles.length;
 }
 
-window.selectFolder = f => {
+window.selectFolder=f=>{
   currentFolder=f; selectedFiles.clear();
   document.querySelectorAll('.folder-item').forEach(el=>el.classList.toggle('active',el.dataset.folder===f));
   document.getElementById('folder-title').textContent=f==='all'?'📁 All Files':`📂 ${f}`;
   renderFiles(); updateSelectionUI();
 };
 
+// GOOGLE DRIVE LINK
+window.saveGdriveLink=async()=>{
+  const name=document.getElementById('gdrive-name').value.trim();
+  const rawUrl=document.getElementById('gdrive-url').value.trim();
+  const folder=document.getElementById('gdrive-folder-select').value||'General';
+  if(!name||!rawUrl){ showToast('Enter both name and link','error'); return; }
+
+  // Convert Drive share URL to direct/embed URL
+  let url=rawUrl;
+  const match=rawUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(match){ url=`https://drive.google.com/file/d/${match[1]}/preview`; }
+
+  const id='gdrive_'+Date.now();
+  const fileDoc={ id, name, size:0, type:'gdrive', url, folder, uploadedAt:Date.now(), isGdrive:true };
+  await setDoc(doc(db,'files',id),fileDoc);
+  allFiles.push(fileDoc);
+  renderFolders(); renderFiles();
+  document.getElementById('gdrive-name').value='';
+  document.getElementById('gdrive-url').value='';
+  closeModal('gdrive-modal');
+  showToast('📎 Drive link saved','success');
+  document.getElementById('storage-used').textContent=`${allFiles.length} files`;
+};
+
+// Populate gdrive folder select when modal opens
+const origOpenModal=id=>{
+  document.getElementById(id).classList.add('open');
+  if(id==='gdrive-modal'){
+    const sel=document.getElementById('gdrive-folder-select');
+    sel.innerHTML=folders.map(f=>`<option value="${f}">${f}</option>`).join('');
+  }
+};
+
 // UPLOAD
-window.handleDragOver  = e => { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); };
-window.handleDragLeave = () => document.getElementById('upload-zone').classList.remove('drag');
-window.handleDrop = e => { e.preventDefault(); document.getElementById('upload-zone').classList.remove('drag'); handleFiles(e.dataTransfer.files); };
-window.handleFiles = files => Array.from(files).forEach(uploadFile);
+window.handleDragOver=e=>{ e.preventDefault(); document.getElementById('upload-zone').classList.add('drag'); };
+window.handleDragLeave=()=>document.getElementById('upload-zone').classList.remove('drag');
+window.handleDrop=e=>{ e.preventDefault(); document.getElementById('upload-zone').classList.remove('drag'); handleFiles(e.dataTransfer.files); };
+window.handleFiles=files=>Array.from(files).forEach(uploadFile);
 
 async function uploadFile(file){
   const folder=currentFolder==='all'?'General':currentFolder;
@@ -393,17 +410,18 @@ async function uploadFile(file){
   return new Promise((resolve,reject)=>{
     const xhr=new XMLHttpRequest();
     xhr.open('POST',`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/auto/upload`);
-    xhr.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded/e.total*100); bar.style.width=p+'%'; pct.textContent=p+'%'; } };
+    xhr.upload.onprogress=e=>{ if(e.lengthComputable){ const p=Math.round(e.loaded/e.total*100); bar.style.width=p+'%'; pct.textContent=p+'%'; }};
     xhr.onload=async()=>{
       if(xhr.status===200){
         const res=JSON.parse(xhr.responseText);
         const id=res.public_id.replace(/\//g,'_');
-        const fileDoc={id,name:file.name,size:file.size,type:file.type,url:res.secure_url,publicId:res.public_id,folder,uploadedAt:Date.now()};
+        const fileDoc={id,name:file.name,size:file.size,type:file.type,url:res.secure_url,publicId:res.public_id,folder,uploadedAt:Date.now(),isGdrive:false};
         await setDoc(doc(db,'files',id),fileDoc);
         allFiles.push(fileDoc); renderFolders(); renderFiles();
         prog.style.display='none';
+        document.getElementById('storage-used').textContent=`${allFiles.length} files`;
         showToast(`✅ ${file.name} uploaded`,'success'); resolve();
-      } else { prog.style.display='none'; showToast('Upload failed — check Cloudinary preset','error'); reject(); }
+      } else { prog.style.display='none'; showToast('Upload failed','error'); reject(); }
     };
     xhr.onerror=()=>{ prog.style.display='none'; showToast('Upload failed','error'); reject(); };
     xhr.send(formData);
@@ -419,7 +437,7 @@ async function loadFiles(){
 }
 
 // RENDER
-window.renderFiles = () => {
+window.renderFiles=()=>{
   const q=document.getElementById('search-input').value.toLowerCase();
   const shown=allFiles.filter(f=>(currentFolder==='all'||f.folder===currentFolder)&&f.name.toLowerCase().includes(q));
   const c=document.getElementById('files-container');
@@ -427,41 +445,45 @@ window.renderFiles = () => {
   c.innerHTML=viewMode==='grid'?`<div class="files-grid">${shown.map(cardHTML).join('')}</div>`:`<div class="files-list">${shown.map(rowHTML).join('')}</div>`;
 };
 
-function icon(type){ if(type.startsWith('image/')) return '🖼'; if(type==='application/pdf') return '📄'; if(type.includes('word')) return '📝'; if(type.includes('sheet')||type.includes('excel')) return '📊'; if(type.includes('zip')) return '🗜'; return '📎'; }
+function icon(type,isGdrive){
+  if(isGdrive) return '📎';
+  if(type.startsWith('image/')) return '🖼';
+  if(type==='application/pdf') return '📄';
+  if(type.includes('word')) return '📝';
+  if(type.includes('sheet')||type.includes('excel')) return '📊';
+  if(type.includes('zip')) return '🗜';
+  return '📎';
+}
 
 function cardHTML(f){
-  const thumb=f.type.startsWith('image/')?`<img src="${f.url}" loading="lazy" alt="${f.name}"/>`:`<div class="file-icon">${icon(f.type)}</div>`;
-  return `<div class="file-card">
+  const isGdrive=f.isGdrive||f.type==='gdrive';
+  const thumb=(!isGdrive&&f.type.startsWith('image/'))?`<img src="${f.url}" loading="lazy" alt="${f.name}"/>`:`<div class="file-icon">${icon(f.type,isGdrive)}</div>`;
+  const extraClass=isGdrive?' gdrive-card':'';
+  const btns=isGdrive
+    ?`<button class="fbt gdrive" onclick="previewFile('${f.id}')">👁 Open</button><button class="fbt del" onclick="deleteFile('${f.id}')">🗑</button>`
+    :`<button class="fbt open" onclick="previewFile('${f.id}')">👁 View</button><button class="fbt dl" onclick="downloadFile('${f.id}')">⬇ Save</button><button class="fbt del" onclick="deleteFile('${f.id}')">🗑</button>`;
+  return `<div class="file-card${extraClass}">
     <div class="file-thumb" onclick="previewFile('${f.id}')">${thumb}</div>
     <div class="file-meta">
       <div class="file-name" title="${f.name}">${f.name}</div>
-      <div class="file-size">${fmtSize(f.size)}</div>
-      <div class="file-btns">
-        <button class="fbt open" onclick="previewFile('${f.id}')">👁 View</button>
-        <button class="fbt dl" onclick="downloadFile('${f.id}')">⬇ Save</button>
-        <button class="fbt sh" onclick="shareFile('${f.id}')">🔗</button>
-        <button class="fbt del" onclick="deleteFile('${f.id}')">🗑</button>
-      </div>
+      <div class="file-size">${isGdrive?'Google Drive':fmtSize(f.size)}</div>
+      <div class="file-btns">${btns}</div>
     </div>
   </div>`;
 }
 
 function rowHTML(f){
-  return `<div class="file-row">
+  const isGdrive=f.isGdrive||f.type==='gdrive';
+  const extraClass=isGdrive?' gdrive-row':'';
+  const btns=isGdrive
+    ?`<button class="rbt gdrive" onclick="previewFile('${f.id}')">👁 Open</button><button class="rbt" onclick="openMoveModal('${f.id}')">📂 Move</button><button class="rbt del" onclick="deleteFile('${f.id}')">🗑 Delete</button>`
+    :`<button class="rbt open" onclick="previewFile('${f.id}')">👁 View</button><button class="rbt dl" onclick="downloadFile('${f.id}')">⬇ Download</button><button class="rbt" onclick="openMoveModal('${f.id}')">📂 Move</button><button class="rbt" onclick="shareFile('${f.id}')">🔗 Share</button><button class="rbt del" onclick="deleteFile('${f.id}')">🗑 Delete</button>`;
+  return `<div class="file-row${extraClass}">
     <div class="file-row-top">
-      <div class="row-icon" onclick="previewFile('${f.id}')" style="cursor:pointer">${icon(f.type)}</div>
-      <div class="row-info">
-        <div class="row-name" title="${f.name}">${f.name}</div>
-        <div class="row-meta">${f.folder} · ${fmtSize(f.size)}</div>
-      </div>
+      <div class="row-icon" onclick="previewFile('${f.id}')">${icon(f.type,isGdrive)}</div>
+      <div class="row-info"><div class="row-name" title="${f.name}">${f.name}</div><div class="row-meta">${f.folder} · ${isGdrive?'Google Drive':fmtSize(f.size)}</div></div>
     </div>
-    <div class="row-btns">
-      <button class="rbt open" onclick="previewFile('${f.id}')">👁 View</button>
-      <button class="rbt dl" onclick="downloadFile('${f.id}')">⬇ Download</button>
-      <button class="rbt" onclick="openMoveModal('${f.id}')">📂 Move</button>
-      <button class="rbt" onclick="shareFile('${f.id}')">🔗 Share</button>
-      <button class="rbt del" onclick="deleteFile('${f.id}')">🗑 Delete</button>
-    </div>
+    <div class="row-btns">${btns}</div>
   </div>`;
 }
 
@@ -470,39 +492,53 @@ window.toggleSelect=(id,e)=>{ if(e.target.tagName==='BUTTON') return; selectedFi
 function updateSelectionUI(){ document.getElementById('delete-selected-btn').style.display=selectedFiles.size>0?'flex':'none'; }
 
 // PREVIEW
-window.previewFile = id => {
+window.previewFile=id=>{
   const f=allFiles.find(x=>x.id===id);
   if(!f) return;
+  const isGdrive=f.isGdrive||f.type==='gdrive';
   document.getElementById('preview-name').textContent=f.name;
   const c=document.getElementById('preview-content');
   const a=document.getElementById('preview-actions');
-  if(f.type.startsWith('image/')){
+  if(isGdrive){
+    c.innerHTML=`<iframe src="${f.url}" style="width:100%;height:70vh;border:none;border-radius:8px"></iframe>`;
+    a.innerHTML=`<a href="${f.url.replace('/preview','/view')}" target="_blank"><button class="btn-sm primary">🔗 Open in Drive</button></a>`;
+  } else if(f.type.startsWith('image/')){
     c.innerHTML=`<img src="${f.url}" alt="${f.name}"/>`;
-  } else if(f.type==='application/pdf'){
-    const gdocsUrl=`https://docs.google.com/viewer?url=${encodeURIComponent(f.url)}&embedded=true`;
-    c.innerHTML=`<iframe src="${gdocsUrl}"></iframe>`;
+    a.innerHTML=`<button class="btn-sm" style="border-color:var(--success);color:var(--success)" onclick="downloadFile('${f.id}')">⬇ Save to device</button><button class="btn-sm" onclick="shareFile('${f.id}')">🔗 Share link</button>`;
   } else {
-    c.innerHTML=`<div style="font-size:3rem;margin:1rem 0">${icon(f.type)}</div><p style="color:var(--muted);font-size:.9rem">Preview not available for this file type.</p>`;
+    c.innerHTML=`<div style="font-size:3rem;margin:1rem 0">${icon(f.type,false)}</div><p style="color:var(--muted);font-size:.9rem">Preview not available.</p>`;
+    a.innerHTML=`<button class="btn-sm" style="border-color:var(--success);color:var(--success)" onclick="downloadFile('${f.id}')">⬇ Save to device</button>`;
   }
-  a.innerHTML=`
-    <a href="${f.url}" target="_blank"><button class="btn-sm primary">🔗 Open in browser</button></a>
-    <button class="btn-sm" style="border-color:var(--success);color:var(--success)" onclick="downloadFile('${f.id}')">⬇ Download</button>
-    <button class="btn-sm" onclick="shareFile('${f.id}')">🔗 Share link</button>`;
-  openModal('preview-modal');
+  origOpenModal('preview-modal');
 };
 
-// DOWNLOAD
-window.downloadFile = id => {
+// DOWNLOAD — fetch as blob so it actually saves instead of opening
+window.downloadFile=async id=>{
   const f=allFiles.find(x=>x.id===id);
   if(!f) return;
-  const a=document.createElement('a');
-  a.href=f.url;
-  a.download=f.name;
-  a.target='_blank';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  showToast('⬇ Downloading…','success');
+  showToast('⬇ Preparing download…','success');
+  try {
+    const resp=await fetch(f.url);
+    const blob=await resp.blob();
+    const blobUrl=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=blobUrl;
+    a.download=f.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(blobUrl),3000);
+    showToast('✅ Saved to device','success');
+  } catch(e){
+    // Fallback for cross-origin issues
+    const a=document.createElement('a');
+    a.href=f.url;
+    a.download=f.name;
+    a.target='_blank';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 };
 
 // DELETE
@@ -510,22 +546,21 @@ window.deleteFile=async id=>{ const f=allFiles.find(x=>x.id===id); if(!f||!confi
 window.deleteSelected=async()=>{ if(!confirm(`Delete ${selectedFiles.size} file(s)?`)) return; for(const id of[...selectedFiles]){ await deleteDoc(doc(db,'files',id)); allFiles=allFiles.filter(x=>x.id!==id); } selectedFiles.clear(); renderFolders(); renderFiles(); updateSelectionUI(); document.getElementById('storage-used').textContent=`${allFiles.length} files`; showToast('🗑 Deleted','success'); };
 
 // MOVE
-window.openMoveModal=id=>{ moveTargetId=id; const sel=document.getElementById('move-folder-select'); sel.innerHTML=folders.map(f=>`<option value="${f}">${f}</option>`).join(''); openModal('move-modal'); };
+window.openMoveModal=id=>{ moveTargetId=id; const sel=document.getElementById('move-folder-select'); sel.innerHTML=folders.map(f=>`<option value="${f}">${f}</option>`).join(''); origOpenModal('move-modal'); };
 window.confirmMove=async()=>{ const folder=document.getElementById('move-folder-select').value; const f=allFiles.find(x=>x.id===moveTargetId); if(!f) return; f.folder=folder; await setDoc(doc(db,'files',f.id),f); closeModal('move-modal'); renderFolders(); renderFiles(); showToast(`📂 Moved to ${folder}`,'success'); };
 
 // SHARE
-window.shareFile=id=>{ const f=allFiles.find(x=>x.id===id); if(!f) return; document.getElementById('share-link-input').value=f.url; openModal('share-modal'); };
+window.shareFile=id=>{ const f=allFiles.find(x=>x.id===id); if(!f) return; document.getElementById('share-link-input').value=f.url; origOpenModal('share-modal'); };
 window.copyShareLink=()=>{ navigator.clipboard.writeText(document.getElementById('share-link-input').value).then(()=>showToast('🔗 Link copied!','success')); };
 
-// VIEW TOGGLE
+// VIEW
 window.setView=v=>{ viewMode=v; document.getElementById('grid-btn').classList.toggle('active',v==='grid'); document.getElementById('list-btn').classList.toggle('active',v==='list'); renderFiles(); };
 
 // UTILS
 function fmtSize(b){ if(!b) return '—'; if(b<1024) return b+' B'; if(b<1048576) return (b/1024).toFixed(1)+' KB'; return (b/1048576).toFixed(2)+' MB'; }
 function showToast(msg,type=''){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type+' show'; setTimeout(()=>t.classList.remove('show'),2800); }
-function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-window.openModal=openModal; window.closeModal=closeModal;
+window.openModal=origOpenModal; window.closeModal=closeModal;
 </script>
 </body>
 </html>
