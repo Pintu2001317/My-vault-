@@ -479,7 +479,8 @@ window.previewFile = id => {
   if(f.type.startsWith('image/')){
     c.innerHTML=`<img src="${f.url}" alt="${f.name}"/>`;
   } else if(f.type==='application/pdf'){
-    c.innerHTML=`<iframe src="${f.url}"></iframe>`;
+    const gdocsUrl=`https://docs.google.com/viewer?url=${encodeURIComponent(f.url)}&embedded=true`;
+    c.innerHTML=`<iframe src="${gdocsUrl}"></iframe>`;
   } else {
     c.innerHTML=`<div style="font-size:3rem;margin:1rem 0">${icon(f.type)}</div><p style="color:var(--muted);font-size:.9rem">Preview not available for this file type.</p>`;
   }
